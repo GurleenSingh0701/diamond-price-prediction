@@ -2,13 +2,11 @@ import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
-
 import pickle
 import bz2
 
-
 # Load the trained model
-with open("diamond_price_model.pkl", "rb") as file:
+with bz2.BZ2File("diamond_price_model.pkl", "rb") as file:
     model = pickle.load(file)
 
 # Streamlit App Title
@@ -54,6 +52,3 @@ else:
             st.success(f"💰 Predicted Diamond Price: ${np.expm1(predicted_price):,.2f}")
         except Exception as e:
             st.error(f"⚠ An error occurred during prediction: {e}")
-
-# Footer
-st.sidebar.markdown("Developed by [Your Name]")
