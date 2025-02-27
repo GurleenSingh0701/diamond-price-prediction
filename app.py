@@ -17,12 +17,19 @@ col1, col2, col3 = st.columns([1, 2, 1])  # Create columns with relative widths
 with col2:  # Place the input form in the center column
     st.header("Enter Diamond Features")
 
-    carat = st.slider("Carat", 0.2, 5.0, step=0.01)
-    volume = st.slider("Volume", 1.0, 500.0, step=1.0)
+    carat, volume = st.columns(2) # split carat and volume into 2 columns
+    with carat:
+        carat = st.slider("Carat", 0.2, 5.0, step=0.01)
+    with volume:
+        volume = st.slider("Volume", 1.0, 500.0, step=1.0)
 
-    cut = st.selectbox("Cut", ["Fair", "Good", "Very Good", "Premium", "Ideal"])
-    clarity = st.selectbox("Clarity", ['Very Slightly Included2', 'Slightly Included2', 'Slightly Included1', 'Included1', 'Very Very Slightly Included', 'Very Slightly Included1', 'Internally Flawless'])
-    color = st.selectbox("Color", ['Colorless1', 'Colorless2', 'Colorless3', 'Near Colorless1','Near Colorless2', 'Near Colorless3', 'Near Colorless4'])
+    cut, clarity = st.columns(2) # split cut and clarity into 2 columns
+    with cut:
+        cut = st.selectbox("Select Cut Type", ["Select Cut Type", "Fair", "Good", "Very Good", "Premium", "Ideal"])
+    with clarity:
+        clarity = st.selectbox("Select Clarity", ["Select Clarity", 'Very Slightly Included2', 'Slightly Included2', 'Slightly Included1', 'Included1', 'Very Very Slightly Included', 'Very Slightly Included1', 'Internally Flawless'])
+
+    color = st.selectbox("Select Color", ["Select Color", 'Colorless1', 'Colorless2', 'Colorless3', 'Near Colorless1', 'Near Colorless2', 'Near Colorless3', 'Near Colorless4'])
 
     # Map categorical values to numerical encoding (update based on your encoding)
     cut_dict = {"Fair": 0, "Good": 1, "Very Good": 2, "Premium": 3, "Ideal": 4}
@@ -35,8 +42,8 @@ with col2:  # Place the input form in the center column
     clarity_value = clarity_dict.get(clarity, -1)
 
     # Fix: Check if any category returns -1 (meaning mapping failed)
-    if -1 in [cut_value, color_value, clarity_value]:
-        st.error("⚠ Invalid category detected! Please check your categorical encoding.")
+    if -1 in [cut_value, color_value, clarity_value] or "Select" in [cut, color, clarity]:
+        st.error("⚠ Invalid category detected! Please check your categorical encoding and selections.")
     else:
         # Convert user input into a DataFrame with correct formatting
         features = pd.DataFrame([[
