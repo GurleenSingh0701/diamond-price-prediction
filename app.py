@@ -56,4 +56,4 @@ with col2:  # Place the input form in the center column
                 predicted_price = model.predict(features)[0]
                 st.success(f"💰 Predicted Diamond Price: ${np.expm1(predicted_price):,.2f}")
             except Exception as e:
-                st.error(f"⚠ An error occurred during prediction: {e}")s
+                st.error(f"⚠ An error occurred during prediction: {e}")
