@@ -8,85 +8,52 @@ import bz2
 with bz2.BZ2File("diamond_price_model.pkl", "rb") as file:
     model = pickle.load(file)
 
-# Custom CSS to make the form bigger and center it nicely
-st.markdown("""
-    <style>
-    .big-font {
-        font-size: 20px !important;
-    }
-    .diamond_form {   
-        width: 500px;
-        height: 100%;
-        margin: 0 auto;
-    }
-    .stSlider > div { padding: 5px 0; }
-    .stSelectbox > div { padding: 5px 0; }
-    </style>
-""", unsafe_allow_html=True)
-
-# App Title
+# Streamlit App Title
 st.title("💎 Diamond Price Prediction App")
 
-# Centering the form with columns
-col1, col2, col3 = st.columns([1, 3, 1])  # Make middle column wider
+# Center the input form using columns
+col1, col2, col3 = st.columns([1, 2, 1])  # Create columns with relative widths
 
-with col2:
-    st.markdown('<div class="form-container">', unsafe_allow_html=True)
-    st.subheader("📋 Enter Diamond Features")
-    with st.form("diamond_form"):
-        # Sliders for Carat and Volume with larger space
-        carat, volume = st.columns([1, 1])
-        with carat:
-            carat = st.slider("💎 Carat", 0.2, 5.0, step=0.01)
-        with volume:
-            volume = st.slider("📏 Volume", 1.0, 500.0, step=1.0)
+with col2:  # Place the input form in the center column
+    st.header("Enter Diamond Features")
 
-        # Selectboxes for Cut and Clarity
-        cut, clarity = st.columns([1, 1])
-        with cut:
-            cut = st.selectbox("✂️ Cut Type", ["Fair", "Good", "Very Good", "Premium", "Ideal"], index=0)
-        with clarity:
-            clarity = st.selectbox("🔎 Clarity", [
-                'Very Slightly Included2', 'Slightly Included2', 'Slightly Included1',
-                'Included1', 'Very Very Slightly Included', 'Very Slightly Included1', 'Internally Flawless'
-            ], index=0)
+    carat, volume = st.columns(2) # split carat and volume into 2 columns
+    with carat:
+        carat = st.slider("Carat", 0.2, 5.0, step=0.01)
+    with volume:
+        volume = st.slider("Volume", 1.0, 500.0, step=1.0)
 
-        # Selectbox for Color
-        color = st.selectbox("🌈 Color", [
-            'Colorless1', 'Colorless2', 'Colorless3',
-            'Near Colorless1', 'Near Colorless2', 'Near Colorless3', 'Near Colorless4'
-        ], index=0)
+    cut, clarity = st.columns(2) # split cut and clarity into 2 columns
+    with cut:
+        cut = st.selectbox("Select Cut Type", ["Select Cut Type", "Fair", "Good", "Very Good", "Premium", "Ideal"])
+    with clarity:
+        clarity = st.selectbox("Select Clarity", ["Select Clarity", 'Very Slightly Included2', 'Slightly Included2', 'Slightly Included1', 'Included1', 'Very Very Slightly Included', 'Very Slightly Included1', 'Internally Flawless'])
 
-        # Prediction button (submit form)
-        submitted = st.form_submit_button("💰 Predict Price", type="primary")
+    color = st.selectbox("Select Color", ["Select Color", 'Colorless1', 'Colorless2', 'Colorless3', 'Near Colorless1', 'Near Colorless2', 'Near Colorless3', 'Near Colorless4'])
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Map categorical values to numerical encoding (update based on your encoding)
+    cut_dict = {"Fair": 0, "Good": 1, "Very Good": 2, "Premium": 3, "Ideal": 4}
+    color_dict = {'Colorless1': 0, 'Colorless2': 1, 'Colorless3': 2, 'Near Colorless1': 3, 'Near Colorless2': 4, 'Near Colorless3': 5, 'Near Colorless4': 6}
+    clarity_dict = {'Very Slightly Included2': 0, 'Slightly Included2': 1, 'Slightly Included1': 2, 'Included1': 3, 'Very Very Slightly Included': 4, 'Very Slightly Included1': 5, 'Internally Flawless': 6}
 
-    # Prediction logic (only runs if form is submitted)
-    if submitted:
-        cut_dict = {"Fair": 0, "Good": 1, "Very Good": 2, "Premium": 3, "Ideal": 4}
-        color_dict = {
-            'Colorless1': 0, 'Colorless2': 1, 'Colorless3': 2,
-            'Near Colorless1': 3, 'Near Colorless2': 4, 'Near Colorless3': 5, 'Near Colorless4': 6
-        }
-        clarity_dict = {
-            'Very Slightly Included2': 0, 'Slightly Included2': 1, 'Slightly Included1': 2,
-            'Included1': 3, 'Very Very Slightly Included': 4,
-            'Very Slightly Included1': 5, 'Internally Flawless': 6
-        }
+    # Convert categorical values safely
+    cut_value = cut_dict.get(cut, -1)
+    color_value = color_dict.get(color, -1)
+    clarity_value = clarity_dict.get(clarity, -1)
 
-        # Convert categorical to numeric
-        cut_value = cut_dict[cut]
-        color_value = color_dict[color]
-        clarity_value = clarity_dict[clarity]
+    # Fix: Check if any category returns -1 (meaning mapping failed)
+    if -1 in [cut_value, color_value, clarity_value] or "Select" in [cut, color, clarity]:
+        st.error("⚠ Invalid category detected! Please check your categorical encoding and selections.")
+    else:
+        # Convert user input into a DataFrame with correct formatting
+        features = pd.DataFrame([[
+            float(carat), float(volume), float(cut_value), float(color_value), float(clarity_value)
+        ]], columns=["carat", "volume", "cut", "color", "clarity"])
 
-        # Prepare features for prediction
-        features = pd.DataFrame([[carat, volume, cut_value, color_value, clarity_value]],
-                                columns=["carat", "volume", "cut", "color", "clarity"])
-
-        # Predict and display result
-        try:
-            predicted_price = model.predict(features)[0]
-            st.success(f"💰 Predicted Diamond Price: ${np.expm1(predicted_price):,.2f}")
-        except Exception as e:
-            st.error(f"⚠️ Error during prediction: {e}")
+        # Prediction Button
+        if st.button("Predict Price"):
+            try:
+                predicted_price = model.predict(features)[0]
+                st.success(f"💰 Predicted Diamond Price: ${np.expm1(predicted_price):,.2f}")
+            except Exception as e:
+                st.error(f"⚠ An error occurred during prediction: {e}")s
