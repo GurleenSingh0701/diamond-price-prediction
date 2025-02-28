@@ -14,11 +14,9 @@ st.markdown("""
     .big-font {
         font-size: 20px !important;
     }
-    .form-container {
-        background-color: #f9f9f9;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+    .diamond-form{
+        width:500px;
+        height:100%;
     }
     .stSlider > div { padding: 5px 0; }
     .stSelectbox > div { padding: 5px 0; }
